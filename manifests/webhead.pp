@@ -99,7 +99,7 @@ class hg::webhead($hg_user_uid='500',
         '/usr/local/bin/lockfile':
             ensure => present,
             mode   => '0755',
-            source => 'puppet:///modules/hg_local/webhead/lockfile';
+            source => 'puppet:///modules/hg/webhead/lockfile';
 
         '/home/hg/.ssh':
             ensure  => directory,
