@@ -1,0 +1,66 @@
+#!/usr/bin/env python
+
+# For each repository listed in /etc/mercurial/repo-mirrors.yaml, if
+# the repo is expected to be mirrored to this host, this program
+# determines the 'tip' revision of the local copy and that of the
+# master repository on hg.mozilla.org.  The repo data is written to a
+# local file for consumption by monitoring utilities.  This program is
+# normally run in a loop.
+
+import yaml
+import socket
+import mercurial.commands
+import mercurial.ui as _ui
+import os.path
+import sys
+from tempfile import NamedTemporaryFile
+
+hostname=socket.gethostname()
+configfile="/etc/mercurial/repo-mirrors.yaml"
+datadir="/dev/shm/check_hg_mirrorsync"
+datafile=datadir + "/state"
+cf = yaml.load(file(configfile))
+u = _ui.ui()
+
+def get_tip_id(ui, path):
+    # If the local repo doesn't exist or is isn't readable, return 0
+    if(path[0] == '/' and not os.path.isfile(path + "/.hg/hgrc")):
+        return 0
+    repo = mercurial.hg.repository(ui, path)
+    ui.pushbuffer()
+    mercurial.commands.identify(ui, repo, rev="tip")
+    id = ui.popbuffer()
+    id = id.split()[0]
+    return id
+
+if not os.path.isdir(datadir):
+    os.mkdir(datadir)
+
+outf = NamedTemporaryFile(dir=datadir)
+data = {}
+
+for key in cf.keys():
+    # Repo entries by definition begin with '/'.  Entries not
+    # beginning with '/' are skipped.
+    if(key[0] == '/'):
+        mirrors = cf[key]['mirrors']
+        for m in mirrors:
+            if m.rfind(hostname) > -1:
+                print "%s gets mirrored to %s" % (key, hostname)
+                origin_path = "http://hg.mozilla.org%s" % key
+                mirror_path = "/repo_local/mozilla%s" % key
+                origin_id = get_tip_id(u, origin_path)
+                mirror_id = get_tip_id(u, mirror_path)
+                data[key] = { "upstream_tip": origin_id, "mirror_tip": mirror_id }
+
+yaml.dump(data, outf)
+os.chmod(outf.name, 0644)
+if(os.path.exists(datafile)):
+    os.unlink(datafile)
+os.link(outf.name, datafile)
+
+# Local variables:
+# mode: python
+# indent-tabs-mode: nil
+# tab-width: 4
+# end:

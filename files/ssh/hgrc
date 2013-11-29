@@ -1,0 +1,49 @@
+####################################
+## This file is managed by puppet ##
+####################################
+
+[trusted]
+users = hg
+
+[email]
+method = /usr/sbin/sendmail
+from = hg@hg.mozilla.org
+
+[web]
+style = gitweb_mozilla
+allow_archive = bz2 gz zip
+templates = /repo_local/mozilla/hg_templates/
+pygments_style = emacs
+encoding = UTF-8
+baseurl = http://hg.mozilla.org/
+maxchanges = 20
+
+[diff]
+showfunc = True
+git = 1
+unified = 8
+
+[hooks]
+sorthooks = True
+changegroup.z_loghistory = python:mozhghooks.pushlog.log
+#pretxnchangegroup.renamecase = python:mozhghooks.prevent_case_only_renames.hook
+#changegroup.zz_mirrorpush = python:mozhghooks.signal-mirrors.hook
+
+[extensions]
+hgwebjson = /repo_local/mozilla/extensions/hgwebjson.py
+pushlog-feed = /repo_local/mozilla/extensions/pushlog-feed.py
+buglink = /repo_local/mozilla/extensions/buglink.py
+#highlight =
+#interhg =
+
+[interhg]
+a_httplinks = s|(https?://\S+)|<a href="\1">\1</a>|i
+bugzilla = s|((?:bug[\s#]*|b=#?|#)(\d{4,}))|<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=\2" title="Bug \2">\1</a>|i
+
+[broker]
+BROKER_HOST = pulse.mozilla.org
+BROKER_USER = hg_shim
+BROKER_PASS = W3_l1ke_f1x3s
+MSG_EXCHANGE = org.mozilla.exchange.code
+BASE_PATH = /repo_local/mozilla/mozilla
+

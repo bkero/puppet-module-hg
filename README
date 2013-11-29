@@ -1,0 +1,29 @@
+hg
+
+This is a module to serve Mercurial from web servers (hgweb) and accept changesets (via SSH).
+
+Example usage:
+node "hgweb.example.com" {
+    include hg
+    include hg::webhead
+}
+
+node "hgssh.example.com" {
+    include hg
+    include hg::ssh
+}
+
+License
+-------
+Apache 2.0 License
+
+
+Contact
+-------
+Ben Kero <bkero@mozilla.com>
+
+
+Support
+-------
+
+Please log tickets and issues at Mozilla's Bugzilla (http://bugzilla.mozilla.org/)

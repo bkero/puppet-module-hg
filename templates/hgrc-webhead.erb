@@ -1,0 +1,37 @@
+####################################
+## This file is managed by puppet ##
+####################################
+
+[trusted]
+users = hg
+
+[email]
+method = /usr/sbin/sendmail
+from = hg@<%= @vhost %>
+
+[web]
+style = <%= @hgweb_style %>
+allow_archive = bz2 gz zip
+templates = <%= @template_path %>
+pygments_style = emacs
+encoding = UTF-8
+baseurl = http://<%= @vhost %>/
+maxchanges = 20
+guessmime = True
+
+[diff]
+showfunc = True
+git = 1
+unified = 8
+
+[extensions]
+hgwebjson = <%= @extension_path %>/hgwebjson.py
+pushlog-feed = <%= @extension_path %>/pushlog-feed.py
+buglink = <%= @extension_path %>/buglink.py
+#highlight =
+#interhg =
+
+[interhg]
+a_httplinks = s|(https?://\S+)|<a href="\1">\1</a>|i
+bugzilla = s|((?:bug[\s#]*|b=#?|#)(\d{4,}))|<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=\2" title="Bug \2">\1</a>|i
+

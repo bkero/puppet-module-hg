@@ -1,0 +1,104 @@
+#!/bin/sh
+
+###  NOTE NOTE NOTE ###
+# The fact that this file is in the puppet file repository is a bug.  The canonical location of
+# this file is https://hg.mozilla.org/hgcustom/hghooks/  If you need to modify this file, be sure
+# that changes are merged into the main location.  The file in hg should be packaged and distributed 
+# directly from hg, rather than being imported into this repo...
+###
+
+die() {
+    echo "$1" 1>&2
+    exit ${2:-1}
+}
+
+usage() {
+    echo "USAGE"
+    echo " $0 [-r source_repo_root] [-t target_directory] <repository>"
+    echo
+}
+
+TEMP=`getopt --options hr:t:l: --long help,root:,target:lock-retries: \
+    -n 'mirror-pull' -- "$@"`
+if [ $? != 0 ]; then
+    die "getopt barfed"
+fi
+
+eval set -- "$TEMP"
+
+# defaults:
+REPO_ROOT=ssh://hg.mozilla.org
+REPO_TARGET=/repo_local/mozilla/mozilla
+LOCK_RETRIES=3 # 3 retries, the first is 5, second is 10, third is 15
+
+export PYTHONPATH=/repo_local/mozilla/library_overrides:/repo_local/mozilla/libraries
+
+while true; do
+    case "$1" in 
+        -r|--root)
+            REPO_ROOT="$2" ; shift 2
+            ;;
+        -t|--target)
+            REPO_TARGET="$2" ; shift 2
+            ;;
+        -l|--lock-retries)
+            LOCK_RETRIES="$2" ; shift 2
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        --)
+            shift ; break
+            ;;
+        *)
+            die "I don't know what happened."
+            ;;
+    esac
+done
+
+if [ -n "$SSH_ORIGINAL_COMMAND" ]; then
+    # We're running under ssh; the repository is given in the third field
+    repo=`echo $SSH_ORIGINAL_COMMAND | cut -d ' ' -f 3`
+else
+    repo="$1"
+fi
+
+repo=`echo "$repo" | sed 's#[^-\._/[:alnum:]]##g'`
+test -z "$repo" && die "need a repo to clone, relative to /repo/hg/mozilla" 
+
+name=`echo $repo | sed 's#^/*##'`
+src=${REPO_ROOT}/$name
+
+GLOBAL_HG_OPTS="--config hooks.pretxnchangegroup.z_linearhistory= --config hooks.pretxnchangegroup.z_loghistory= --config trusted.users=root,hg --config paths.default=ssh://hg.mozilla.org/${name}"
+
+cd $REPO_TARGET || die "$REPO_TARGET does not exist, cannot create repositories there"
+
+exit_code=0
+if [ -d "$name" ]; then
+    echo "$name already exists, pulling"
+    /usr/bin/lockfile-create --retry ${LOCK_RETRIES} ${PWD}/${name} || die "Could not lock destination ${PWD}/${name}.lock, already exists?"
+    cd $name
+    hg pull $GLOBAL_HG_OPTS 
+    ssh -i /etc/mercurial/mirror -l vcs-sync@mozilla.com hg.mozilla.org pushlog $name > .hg/pushlog2.db
+    exit_code=$?
+    lockfile-remove ${PWD}/${name}
+elif [ \! -e $name ]; then
+    mkdir -p `dirname $name` 
+    echo "$name does not yet exist, cloning"
+    /usr/bin/lockfile-create --retry ${LOCK_RETRIES} ${PWD}/${name} || die "Could not lock destination ${PWD}/${name}.lock, already exists?"
+    hg clone $GLOBAL_HG_OPTS -U -v "$src" $name
+    ssh -i /etc/mercurial/mirror -l vcs-sync@mozilla.com hg.mozilla.org pushlog $name > ${name}/.hg/pushlog2.db
+    exit_code=$?
+    rm -f $lockf
+else
+    die "WTF is $REPO_TARGET/$name"
+fi
+
+exit $exit_code
+
+# Local variables:
+# mode: shell-script
+# tab-width: 4
+# indent-tabs-mode: nil
+# end:
