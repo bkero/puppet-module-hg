@@ -11,6 +11,27 @@ usage() {
     echo
 }
 
+check_nowait_lock() {
+    if [ -e $1 ]; then
+        return 1
+    fi
+
+    return 0
+}
+
+check_wait_lock() {
+    if [ -e $1 ]; then
+        sleep 5
+        check_wait_lock $1
+    fi
+    return 0
+}
+
+create_lock() {
+    check_nowait_lock $1 && touch $1
+}
+
+
 TEMP=`getopt --options hr:t:l: --long help,root:,target:lock-retries: \
     -n 'mirror-pull' -- "$@"`
 if [ $? != 0 ]; then
@@ -71,20 +92,20 @@ cd $REPO_TARGET || die "$REPO_TARGET does not exist, cannot create repositories 
 exit_code=0
 if [ -d "$name" ]; then
     echo "$name already exists, pulling"
-    /usr/bin/lockfile-create --retry ${LOCK_RETRIES} ${PWD}/${name} || die "Could not lock destination ${PWD}/${name}.lock, already exists?"
+    lockfile -r $LOCK_RETRIES ${PWD}/${name}.lck || die "Could not lock destionation"
     cd $name
     hg pull $GLOBAL_HG_OPTS 
     ssh -i <%= @mirror_private_key_path %> -l <%= @mirror_user_name %> %<= @mirror_source %> pushlog $name > .hg/pushlog2.db
     exit_code=$?
-    lockfile-remove ${PWD}/${name}
+    rm ${PWD}/${name}.lck
 elif [ \! -e $name ]; then
     mkdir -p `dirname $name` 
     echo "$name does not yet exist, cloning"
-    /usr/bin/lockfile-create --retry ${LOCK_RETRIES} ${PWD}/${name} || die "Could not lock destination ${PWD}/${name}.lock, already exists?"
+    lockfile -r $LOCK_RETRIES ${PWD}/${name}.lck || die "Could not lock destionation"
     hg clone $GLOBAL_HG_OPTS -U -v "$src" $name
     ssh -i <%= @mirror_private_key_path %> -l <%= @mirror_user_name %> <%= @mirror_source %> pushlog $name > ${name}/.hg/pushlog2.db
     exit_code=$?
-    rm -f $lockf
+    rm ${PWD}/${name}.lck
 else
     die "WTF is $REPO_TARGET/$name"
 fi

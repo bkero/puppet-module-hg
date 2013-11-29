@@ -96,6 +96,10 @@ class hg::webhead($hg_user_uid='500',
             ensure => present,
             mode   => '0755',
             source => 'puppet:///modules/hg/webhead/repo-group';
+        '/usr/local/bin/lockfile':
+            ensure => present,
+            mode   => '0755',
+            source => 'puppet:///modules/hg_local/webhead/lockfile';
 
         '/home/hg/.ssh':
             ensure  => directory,
