@@ -92,20 +92,20 @@ cd $REPO_TARGET || die "$REPO_TARGET does not exist, cannot create repositories 
 exit_code=0
 if [ -d "$name" ]; then
     echo "$name already exists, pulling"
-    lockfile -r $LOCK_RETRIES ${PWD}/${name}.lck || die "Could not lock destionation"
     cd $name
+    lockfile -r $LOCK_RETRIES ${PWD}/syncing.lck || die "Could not lock destionation"
     hg pull $GLOBAL_HG_OPTS 
     ssh -i <%= @mirror_priv_key_path %> -l <%= @mirror_user_name %> <%= @mirror_source %> pushlog $name > .hg/pushlog2.db
     exit_code=$?
-    rm ${PWD}/${name}.lck
+    rm ${PWD}/syncing.lck
 elif [ \! -e $name ]; then
     mkdir -p `dirname $name` 
     echo "$name does not yet exist, cloning"
-    lockfile -r $LOCK_RETRIES ${PWD}/${name}.lck || die "Could not lock destionation"
+    lockfile -r $LOCK_RETRIES ${PWD}/syncing.lck || die "Could not lock destionation"
     hg clone $GLOBAL_HG_OPTS -U -v "$src" $name
     ssh -i <%= @mirror_priv_key_path %> -l <%= @mirror_user_name %> <%= @mirror_source %> pushlog $name > ${name}/.hg/pushlog2.db
     exit_code=$?
-    rm ${PWD}/${name}.lck
+    rm ${PWD}/syncing.lck
 else
     die "WTF is $REPO_TARGET/$name"
 fi
