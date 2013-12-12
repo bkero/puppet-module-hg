@@ -112,6 +112,7 @@ class hg::webhead($hg_user_uid='500',
             content => template('hg/hgrc-webhead.erb');
         '/usr/local/bin/mirror-pull':
             ensure  => present,
+            mode    => '0755',
             content => template('hg/mirror-pull.erb');
 
         '/usr/local/bin/repo-group':
