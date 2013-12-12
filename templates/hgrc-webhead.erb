@@ -12,7 +12,7 @@ from = hg@<%= @vhost %>
 [web]
 style = <%= @hgweb_style %>
 allow_archive = bz2 gz zip
-templates = <%= @template_path %>
+templates = <%= @template_path %>/
 pygments_style = emacs
 encoding = UTF-8
 baseurl = http://<%= @vhost %>/

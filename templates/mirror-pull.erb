@@ -95,7 +95,7 @@ if [ -d "$name" ]; then
     lockfile -r $LOCK_RETRIES ${PWD}/${name}.lck || die "Could not lock destionation"
     cd $name
     hg pull $GLOBAL_HG_OPTS 
-    ssh -i <%= @mirror_private_key_path %> -l <%= @mirror_user_name %> %<= @mirror_source %> pushlog $name > .hg/pushlog2.db
+    ssh -i <%= @mirror_priv_key_path %> -l <%= @mirror_user_name %> <%= @mirror_source %> pushlog $name > .hg/pushlog2.db
     exit_code=$?
     rm ${PWD}/${name}.lck
 elif [ \! -e $name ]; then
@@ -103,7 +103,7 @@ elif [ \! -e $name ]; then
     echo "$name does not yet exist, cloning"
     lockfile -r $LOCK_RETRIES ${PWD}/${name}.lck || die "Could not lock destionation"
     hg clone $GLOBAL_HG_OPTS -U -v "$src" $name
-    ssh -i <%= @mirror_private_key_path %> -l <%= @mirror_user_name %> <%= @mirror_source %> pushlog $name > ${name}/.hg/pushlog2.db
+    ssh -i <%= @mirror_priv_key_path %> -l <%= @mirror_user_name %> <%= @mirror_source %> pushlog $name > ${name}/.hg/pushlog2.db
     exit_code=$?
     rm ${PWD}/${name}.lck
 else
