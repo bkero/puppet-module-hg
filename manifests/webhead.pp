@@ -16,6 +16,11 @@ class hg::webhead($hg_user_uid='500',
                         $python_lib_override_path='/repo_local/mozilla/library_overrides',
                         $use_moz_data=true) {
 
+        #### START of Mozilla-specific definitions. You can safely ignore these ####
+    if defined(Yumrepo['epel']) { realize(Yumrepo['epel']) }
+    if defined(Yumrepo['mozilla']) { realize(Yumrepo['mozilla']) }
+    if defined(Package['subversion']) { realize(Package['subversion']) }
+      else { package { 'subversion': ensure => installed } }
 
         # Mozilla's apache module
     if defined(Class['apache']) { include apache }
@@ -27,10 +32,27 @@ class hg::webhead($hg_user_uid='500',
     if defined(Package['mod_wsgi']) { realize(Package['mod_wsgi']) }
       else { package { 'mod_wsgi': ensure => installed } }
 
+    if defined(Yumrepo['mozilla']) {
+        package { 'mercurial':
+            ensure  => present,
+            require => Yumrepo['mozilla'];
+        }
+    }
+    else {
+        package { 'mercurial':
+            ensure   => present,
+            source   => 'http://people.mozilla.org/~bkero/mercurial-2.8+122-1df77035c814.x86_64.rpm',
+            provider => 'rpm';
+        }
+    }
+        #### END of Mozilla-specific definitions
 
-    #package { 'lockfile-progs':
-    #    ensure => present;
-    #    }
+    package { [ 'lockfile-progs',
+                'python-pygments',
+                'python-simplejson',
+                'python-argparse']:
+        ensure => present;
+        }
 
     user { 'hg':
         ensure     => present,
