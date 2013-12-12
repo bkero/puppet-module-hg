@@ -4,7 +4,6 @@ This is a module to serve Mercurial from web servers (hgweb) and accept changese
 
 Example usage:
 node "hgweb.example.com" {
-    include hg
     include hg::webhead
 }
 
