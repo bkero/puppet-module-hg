@@ -7,6 +7,9 @@ node "hgweb.example.com" {
     include hg::webhead
 }
 
+
+# Note: Please don't use the SSH class, it's not tested yet.
+
 node "hgssh.example.com" {
     include hg
     include hg::ssh
