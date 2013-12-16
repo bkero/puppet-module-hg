@@ -7,7 +7,7 @@ die() {
 
 usage() {
     echo "USAGE"
-    echo " $0 [-r source_repo_root] [-t target_directory] <repository>"
+    echo " $0 [-r source_repo_root] [-t target_directory] [-c changeset] <repository>"
     echo
 }
 
@@ -32,7 +32,7 @@ create_lock() {
 }
 
 
-TEMP=`getopt --options hr:t:l: --long help,root:,target:lock-retries: \
+TEMP=`getopt --options hr:t:l:c: --long help,root:,target:lock-retries:changeset: \
     -n 'mirror-pull' -- "$@"`
 if [ $? != 0 ]; then
     die "getopt barfed"
@@ -44,8 +44,8 @@ eval set -- "$TEMP"
 REPO_ROOT=ssh://<%= @mirror_source %>
 REPO_TARGET=<%= @repo_serve_path %>
 LOCK_RETRIES=3 # 3 retries, the first is 5, second is 10, third is 15
+CHANGESET=""
 
-#export PYTHONPATH=/repo_local/mozilla/library_overrides:/repo_local/mozilla/libraries
 export PYTHONPATH=<%= @python_lib_override_path %>:<%= @python_lib_path %>
 
 while true; do
@@ -58,6 +58,9 @@ while true; do
             ;;
         -l|--lock-retries)
             LOCK_RETRIES="$2" ; shift 2
+            ;;
+        -c|--changeset)
+            CHANGESET="-r $2" ; shift 2
             ;;
         -h|--help)
             usage
@@ -94,7 +97,7 @@ if [ -d "$name" ]; then
     echo "$name already exists, pulling"
     cd $name
     lockfile -r $LOCK_RETRIES ${PWD}/syncing.lck || die "Could not lock destionation"
-    hg pull $GLOBAL_HG_OPTS 
+    hg pull $GLOBAL_HG_OPTS $CHANGESET
     ssh -i <%= @mirror_priv_key_path %> -l <%= @mirror_user_name %> <%= @mirror_source %> pushlog $name > .hg/pushlog2.db
     exit_code=$?
     rm ${PWD}/syncing.lck
