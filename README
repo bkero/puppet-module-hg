@@ -1,5 +1,7 @@
 hg
 
+# Useless comit
+
 This is a module to serve Mercurial from web servers (hgweb) and accept changesets (via SSH).
 
 Example usage:
