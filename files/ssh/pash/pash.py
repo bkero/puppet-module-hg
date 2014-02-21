@@ -45,8 +45,4 @@ if __name__ == '__main__':
         elif server_port == "222":
             hg_helper.serve('hg.ecmascript.org')
 
-        # hg-pvt.mozilla.org handler
-        elif server_port == "2222":
-            hg_helper.serve('hgpvt.mozilla.org')
-
         sys.exit (0)
