@@ -45,6 +45,10 @@ class hg::webhead($hg_user_uid='500',
             provider => 'rpm';
         }
     }
+    if defined(Collectd::Plugin['apache']) {
+        realize Collectd::Plugin['apache']
+    }
+
         #### END of Mozilla-specific definitions
 
     package { [ 'lockfile-progs',
