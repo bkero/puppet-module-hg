@@ -14,7 +14,7 @@ WSGISocketPrefix /var/run/wsgi
     SetEnv HGENCODING UTF-8
     SetEnv LC_TYPE UTF-8
 
-    WSGIDaemonProcess <%= @vhost %> processes=24 threads=1 maximum-requests=100 deadlock-timeout=30 user=hg group=hg display-name=<%= @vhost %>
+    WSGIDaemonProcess <%= @vhost %> processes=24 threads=1 maximum-requests=100 deadlock-timeout=60 inactivity-timeout=300 user=hg group=hg display-name=<%= @vhost %>
     WSGIProcessGroup <%= @vhost %>
 
     AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/json
@@ -40,7 +40,7 @@ WSGISocketPrefix /var/run/wsgi
 	Allow from all
     </Location>
     #LogLevel debug
-    LogFormat "%h %v %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" \"%{Cookie}i\""
+    LogFormat "%h %v %u %t \"%r\" %>s %b %D \"%{Referer}i\" \"%{User-Agent}i\" \"%{Cookie}i\""
     ErrorLog "/var/log/httpd/<%= @vhost %>/error_log"
     CustomLog "/var/log/httpd/<%= @vhost %>/access_log" combined env=!image
 </VirtualHost>
