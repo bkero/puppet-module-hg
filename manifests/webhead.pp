@@ -51,8 +51,7 @@ class hg::webhead($hg_user_uid='500',
 
         #### END of Mozilla-specific definitions
 
-    package { [ 'lockfile-progs',
-                'python-pygments',
+    package { [ 'python-pygments',
                 'python-simplejson',
                 'python-argparse']:
         ensure => present;
