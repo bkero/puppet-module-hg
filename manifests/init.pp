@@ -22,8 +22,8 @@ class hg {
     }
     else {
         package { 'mercurial':
-            ensure  => present,
-            source  => 'http://people.mozilla.org/~bkero/mercurial-2.8+122-1df77035c814.x86_64.rpm',
+            ensure   => present,
+            source   => 'http://people.mozilla.org/~bkero/mercurial-2.8+122-1df77035c814.x86_64.rpm',
             provider => 'rpm';
         }
     }
