@@ -2,5 +2,7 @@ Host hg.mozilla.org
     User vcs-sync@mozilla.com
     Hostname hg.mozilla.org
     IdentityFile /etc/mercurial/mirror
-    ControlMaster auto
-    ControlPath ~/.ssh/%r@%h:%p
+    ServerAliveCountMax 3
+    ServerAliveInterval 5
+    ConnectionAttempts 3
+    ConnectTimeout 15
