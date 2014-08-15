@@ -1,3 +1,12 @@
+# == Class: hg:ssh
+#
+# Hg subclass for SSH properties
+#
+# === Parameters
+#
+# $ldap_binddn: binddn to use for OpenSSH LDAP auth (default to heira lookup)
+# $ldap_bindpw: bindpw to use for OpenSSH LDAP auth (default to hiera lookup)
+
 class hg::ssh($ldap_binddn=hiera('secrets_openldap_moco_bindhg_username'),
               $ldap_bindpw=hiera('secrets_openldap_moco_bindhg_password')){
     include openldap::client
