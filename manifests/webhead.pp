@@ -1,3 +1,25 @@
+# == Class: hg::webhead
+#
+# === Parameters
+#
+# hg_user_uid: UID of the managed hg user (default: 500)
+# hg_user_gid: GID of the managed hg user (default: $hg_user_uid)
+# vhost: default vhost hostname to use (default: hg.mozilla.org)
+# logrotate: Tell logrotate to rotate httpd logs? (default: true)
+# mirror_priv_key_path: path to private mirror key (default: see below)
+# mirror_pub_key_path: path to public mirror key (default: see below)
+# mirror_user_name: user name to use for mirrors (default: vcs-sync@mozilla.com)
+# mirror_source: hostname of master server (default: hg.mozilla.org)
+# repo_root_path: root path of repositories (default: /repo_local/mozilla)
+# repo_serve_path: path of serving dir (default: /repo_local/mozilla/mozilla)
+# wsgi_path: path to wsgi files (default: /repo_local/mozilla/webroot_wsgi)
+# template_path: path to hgweb templates (default: /repo_local/mozilla/hg_templates)
+# hgweb_style: which hgweb template to use (default: gitweb_mozilla)
+# extension_path: path to hg extensions (default: /repo_local/mozilla/extensions)
+# python_lib_path: path to python libraries (default: /repo_local/mozilla/libraries)
+# python_lib_override_path: path to python lib overrides (default: /repo_local/mozilla/library_overrides)
+# use_moz_data: Prepopulate with mozilla data (default: true)
+
 class hg::webhead($hg_user_uid='500',
                         $hg_user_gid=$hg_user_uid,
                         $vhost='hg.mozilla.org',
@@ -9,14 +31,14 @@ class hg::webhead($hg_user_uid='500',
                         $repo_root_path='/repo_local/mozilla',
                         $repo_serve_path='/repo_local/mozilla/mozilla',
                         $wsgi_path='/repo_local/mozilla/webroot_wsgi',
-                        $template_path="/repo_local/mozilla/hg_templates",
-                        $hgweb_style="gitweb_mozilla",
-                        $extension_path="/repo_local/mozilla/extensions",
+                        $template_path='/repo_local/mozilla/hg_templates',
+                        $hgweb_style='gitweb_mozilla',
+                        $extension_path='/repo_local/mozilla/extensions',
                         $python_lib_path='/repo_local/mozilla/libraries',
                         $python_lib_override_path='/repo_local/mozilla/library_overrides',
                         $use_moz_data=true) {
 
-        #### START of Mozilla-specific definitions. You can safely ignore these ####
+        # START of Mozilla-specific definitions. You can safely ignore these
     if defined(Yumrepo['epel']) { realize(Yumrepo['epel']) }
     if defined(Yumrepo['mozilla']) { realize(Yumrepo['mozilla']) }
     if defined(Package['subversion']) { realize(Package['subversion']) }
@@ -48,10 +70,14 @@ class hg::webhead($hg_user_uid='500',
     if defined(Collectd::Plugin['apache']) {
         realize Collectd::Plugin['apache']
     }
+    if defined(Collectd::Plugin['hg']) {
+        realize Collectd::Plugin['hg']
+    }
 
         #### END of Mozilla-specific definitions
 
-    package { [ 'python-pygments',
+    package { [ 'lockfile-progs',
+                'python-pygments',
                 'python-simplejson',
                 'python-argparse']:
         ensure => present;
