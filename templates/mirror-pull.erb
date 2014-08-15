@@ -7,7 +7,7 @@ die() {
 
 usage() {
     echo "USAGE"
-    echo " $0 [-r source_repo_root] [-t target_directory] [-c changeset] <repository>"
+    echo " $0 [-r source_repo_root] [-t target_directory] [-c changeset] [-d] -e <repository>"
     echo
 }
 
@@ -31,8 +31,11 @@ create_lock() {
     check_nowait_lock $1 && touch $1
 }
 
+if [ -n "$SSH_ORIGINAL_COMMAND" ]; then
+    set -- $SSH_ORIGINAL_COMMAND
+fi
 
-TEMP=`getopt --options hr:t:l:c: --long help,root:,target:lock-retries:changeset: \
+TEMP=`getopt --options hdr:t:l:c:e: --long help,delete,root:,target:lock-retries:changeset:repo: \
     -n 'mirror-pull' -- "$@"`
 if [ $? != 0 ]; then
     die "getopt barfed"
@@ -44,6 +47,7 @@ eval set -- "$TEMP"
 REPO_ROOT=ssh://<%= @mirror_source %>
 REPO_TARGET=<%= @repo_serve_path %>
 LOCK_RETRIES=3 # 3 retries, the first is 5, second is 10, third is 15
+DELETE=false
 CHANGESET=""
 
 export PYTHONPATH=<%= @python_lib_override_path %>:<%= @python_lib_path %>
@@ -62,6 +66,12 @@ while true; do
         -c|--changeset)
             CHANGESET="-r $2" ; shift 2
             ;;
+        -e|--repo)
+            REPO="$2" ; shift 2
+            ;;
+        -d|--delete)
+            DELETE=true ; shift 1
+            ;;
         -h|--help)
             usage
             exit 0
@@ -75,9 +85,8 @@ while true; do
     esac
 done
 
-if [ -n "$SSH_ORIGINAL_COMMAND" ]; then
-    # We're running under ssh; the repository is given in the third field
-    repo=`echo $SSH_ORIGINAL_COMMAND | cut -d ' ' -f 3`
+if [ -n "$REPO" ]; then
+    repo=$REPO
 else
     repo="$1"
 fi
@@ -90,6 +99,20 @@ src=${REPO_ROOT}/$name
 
 GLOBAL_HG_OPTS="--config hooks.pretxnchangegroup.z_linearhistory= --config hooks.pretxnchangegroup.z_loghistory= --config trusted.users=root,hg --config paths.default=ssh://<%= @mirror_source %>/${name}"
 
+if [ "$DELETE" = "true" ]; then
+    if [ "$(echo ${repo}|cut -f1 --delimiter=/)" != "users" ]; then
+        echo "You requested to delete ${repo}. This does not begin with 'users/', ignoring."
+        exit 1
+    fi
+    if [ ! -d $REPO_TARGET/$repo ]; then
+        echo "No repo found at $repo"
+        exit 1
+    fi
+    echo "Deleting repo $repo"
+    /bin/rm -rf $REPO_TARGET/$repo
+    exit 0
+fi
+
 cd $REPO_TARGET || die "$REPO_TARGET does not exist, cannot create repositories there"
 
 exit_code=0
@@ -98,15 +121,19 @@ if [ -d "$name" ]; then
     cd $name
     lockfile -r $LOCK_RETRIES ${PWD}/syncing.lck || die "Could not lock destionation"
     hg pull $GLOBAL_HG_OPTS $CHANGESET
-    ssh -i <%= @mirror_priv_key_path %> -l <%= @mirror_user_name %> <%= @mirror_source %> pushlog $name > .hg/pushlog2.db
+    TEMPFILE=$(/bin/mktemp)
+    ssh -i <%= @mirror_priv_key_path %> -l <%= @mirror_user_name %> <%= @mirror_source %> pushlog $name > $TEMPFILE
+    /bin/mv $TEMPFILE .hg/pushlog2.db
     exit_code=$?
     rm ${PWD}/syncing.lck
 elif [ \! -e $name ]; then
     mkdir -p `dirname $name` 
     echo "$name does not yet exist, cloning"
-    lockfile -r $LOCK_RETRIES ${PWD}/syncing.lck || die "Could not lock destionation"
+    lockfile -r $LOCK_RETRIES ${PWD}/syncing.lck || die "Could not lock destination"
     hg clone $GLOBAL_HG_OPTS -U -v "$src" $name
-    ssh -i <%= @mirror_priv_key_path %> -l <%= @mirror_user_name %> <%= @mirror_source %> pushlog $name > ${name}/.hg/pushlog2.db
+    TEMPFILE=$(/bin/mktemp)
+    ssh -i <%= @mirror_priv_key_path %> -l <%= @mirror_user_name %> <%= @mirror_source %> pushlog $name > $TEMPFILE
+    /bin/mv $TEMPFILE .hg/pushlog2.db
     exit_code=$?
     rm ${PWD}/syncing.lck
 else
