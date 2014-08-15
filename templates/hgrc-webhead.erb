@@ -25,9 +25,9 @@ git = 1
 unified = 8
 
 [extensions]
-hgwebjson = <%= @extension_path %>/hgwebjson.py
-pushlog-feed = <%= @extension_path %>/pushlog-feed.py
-buglink = <%= @extension_path %>/buglink.py
+#hgwebjson = <%= @extension_path %>/hgwebjson.py
+#pushlog-feed = <%= @extension_path %>/pushlog-feed.py
+#buglink = <%= @extension_path %>/buglink.py
 #highlight =
 #interhg =
 
@@ -35,3 +35,5 @@ buglink = <%= @extension_path %>/buglink.py
 a_httplinks = s|(https?://\S+)|<a href="\1">\1</a>|i
 bugzilla = s|((?:bug[\s#]*|b=#?|#)(\d{4,}))|<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=\2" title="Bug \2">\1</a>|i
 
+#[serverlog]
+#reporoot = /repo_local/mozilla/
