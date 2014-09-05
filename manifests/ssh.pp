@@ -13,6 +13,14 @@ class hg::ssh($ldap_binddn=hiera('secrets_openldap_moco_bindhg_username'),
     # Whether we're running in our fake/local development environment.
     $fakemozilla = hiera('fakemozilla')
 
+    # When in local mode, secrets come from the local module and are hard-coded
+    # to dummy defaults.
+    if $fakemozilla {
+      $secrets = 'puppet:///modules/hg/fakemozilla/secrets'
+    } else {
+      $secrets = 'puppet:///modules/secrets'
+    }
+
     # Production uses LDAP for user management. Our fake run-time environment
     # does local management for simplicity reasons.
     unless $fakemozilla {
@@ -92,44 +100,44 @@ class hg::ssh($ldap_binddn=hiera('secrets_openldap_moco_bindhg_username'),
         '/etc/ssh/ssh_host_dsa_key':
             notify => Service['sshd'],
             mode   => '0600',
-            source => 'puppet:///modules/secrets/hg_new/ssh/ssh_host_dsa_key';
+            source => "$secrets/hg_new/ssh/ssh_host_dsa_key";
 
         '/etc/ssh/ssh_host_dsa_key.pub':
             notify => Service['sshd'],
             mode   => '0600',
-            source => 'puppet:///modules/secrets/hg_new/ssh/ssh_host_dsa_key.pub';
+            source => "$secrets/hg_new/ssh/ssh_host_dsa_key.pub";
 
         '/etc/ssh/ssh_host_key':
             notify => Service['sshd'],
             mode   => '0600',
-            source => 'puppet:///modules/secrets/hg_new/ssh/ssh_host_key';
+            source => "$secrets/hg_new/ssh/ssh_host_key";
 
         '/etc/ssh/ssh_host_key.pub':
             notify => Service['sshd'],
             mode   => '0600',
-            source => 'puppet:///modules/secrets/hg_new/ssh/ssh_host_key.pub';
+            source => "$secrets/hg_new/ssh/ssh_host_key.pub";
 
         '/etc/ssh/ssh_host_rsa_key':
             notify => Service['sshd'],
             mode   => '0600',
-            source => 'puppet:///modules/secrets/hg_new/ssh/ssh_host_rsa_key';
+            source => "$secrets/hg_new/ssh/ssh_host_rsa_key";
 
         '/etc/ssh/ssh_host_rsa_key.pub':
             notify => Service['sshd'],
             mode   => '0600',
-            source => 'puppet:///modules/secrets/hg_new/ssh/ssh_host_rsa_key.pub';
+            source => "$secrets/hg_new/ssh/ssh_host_rsa_key.pub";
 
         # SSH Mirror key (used to mirror to webheads)
 
         '/etc/mercurial/mirror':
             ensure => present,
             mode   => '0600',
-            source => 'puppet:///modules/secrets/hg_new/ssh/mirror';
+            source => "$secrets/hg_new/ssh/mirror";
 
         '/etc/mercurial/mirror.pub':
             ensure => present,
             mode   => '0600',
-            source => 'puppet:///modules/secrets/hg_new/ssh/mirror.pub';
+            source => "$secrets/hg_new/ssh/mirror.pub";
 
         # List of webhead mirrors
 
