@@ -167,6 +167,21 @@ class hg::webhead($hg_user_uid='500',
             mode    => '0600',
             require => File['/home/hg/.ssh'];
 
+        "$hg::webhead::wsgi_path/hgweb.wsgi":
+            ensure  => present,
+            source  => 'puppet:///modules/hg/webhead/hgweb.wsgi',
+            owner   => 'hg',
+            group   => 'hg',
+            mode    => '0664',
+            require => User['hg'], File[$hg::webhead::wsgi_path];
+
+        "$hg::webhead::wsgi_path/hgweb.config":
+            ensure  => present,
+            source  => 'puppet:///modules/hg/webhead/hgweb.config',
+            owner   => 'hg',
+            group   => 'hg',
+            mode    => '0660',
+            require => User['hg'], File[$hg::webhead::wsgi_path];
     }
 
     if ($logrotate == true) {

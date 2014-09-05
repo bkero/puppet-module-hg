@@ -28,20 +28,15 @@ class hg {
         }
     }
 
-    file { '/repo':
-      ensure => directory,
-    }
-
-    file { '/repo_local':
-      ensure => directory,
-    }
-
-    file { '/repo_local/mozilla':
-      ensure => directory,
-    }
-
-    file { '/repo_local/mozilla/libraries':
-      ensure => directory,
+    file { [
+        '/repo',
+        '/repo_local',
+        '/repo_local/mozilla',
+        '/repo_local/mozilla/mozilla',
+        '/repo_local/mozilla/libraries',
+    ]:
+        ensure => directory,
+        mode   => '775',
     }
 
     file { '/repo/hg':
@@ -79,6 +74,14 @@ class hg {
       provider => hg,
       ensure   => present,
       require  => File['/repo_local/mozilla'],
+    }
+
+    vcsrepo { 'venkman':
+      path     => '/repo_local/mozilla/mozilla/venkman',
+      source   => 'https://hg.mozilla.org/venkman',
+      provider => hg,
+      ensure   => present,
+      require  => File['/repo_local/mozilla/mozilla'],
     }
 
     file { '/repo_local/mozilla/libraries/mozhghooks':
