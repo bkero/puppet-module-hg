@@ -42,9 +42,11 @@ class hg::ssh($ldap_binddn=hiera('secrets_openldap_moco_bindhg_username'),
         groups => undef,
     }
 
-    sshd_config {
-        ForceCommand: value => '/usr/local/bin/pash.py';
-        Port: value         => "22\nPort 222";
+    unless $fakemozilla {
+      sshd_config {
+          ForceCommand: value => '/usr/local/bin/pash.py';
+          Port: value         => "22\nPort 222";
+      }
     }
 
     file {
