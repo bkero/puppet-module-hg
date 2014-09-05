@@ -9,8 +9,24 @@
 
 class hg::ssh($ldap_binddn=hiera('secrets_openldap_moco_bindhg_username'),
               $ldap_bindpw=hiera('secrets_openldap_moco_bindhg_password')){
-    include openldap::client
-    realize(Package['python-ldap'])
+
+    # Production uses LDAP for user management. Our fake run-time environment
+    # does local management for simplicity reasons.
+    unless hiera('fakemozilla') {
+      include openldap::client
+      realize(Package['python-ldap'])
+
+      class {
+          'openssh_lpk':
+              ldap_server   => $::ldapvip,
+              uid           => 'mail',
+              userdn        => 'dc=mozilla',
+              binddn        => $hg::ssh::ldap_binddn,
+              bindpw        => $hg::ssh::ldap_bindpw,
+              homeDirectory => 'fakeHome',
+      }
+
+    }
 
     cron { 'make_user_wsgi_dirs':
         require => File['make_user_wsgi_dirs'],
@@ -21,16 +37,6 @@ class hg::ssh($ldap_binddn=hiera('secrets_openldap_moco_bindhg_username'),
 
     User['hg'] {
         groups => undef,
-    }
-
-    class {
-        'openssh_lpk':
-            ldap_server   => $::ldapvip,
-            uid           => 'mail',
-            userdn        => 'dc=mozilla',
-            binddn        => $hg::ssh::ldap_binddn,
-            bindpw        => $hg::ssh::ldap_bindpw,
-            homeDirectory => 'fakeHome',
     }
 
     sshd_config {

@@ -59,4 +59,7 @@ class hg::fakemozilla {
     gid => 656,
   }
 
+  file { '/var/lib/hiera/common.yaml':
+    source => 'puppet:///modules/hg/fakemozilla/hiera-common.yaml',
+  }
 }
