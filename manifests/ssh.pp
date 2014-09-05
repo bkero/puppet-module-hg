@@ -10,9 +10,12 @@
 class hg::ssh($ldap_binddn=hiera('secrets_openldap_moco_bindhg_username'),
               $ldap_bindpw=hiera('secrets_openldap_moco_bindhg_password')){
 
+    # Whether we're running in our fake/local development environment.
+    $fakemozilla = hiera('fakemozilla')
+
     # Production uses LDAP for user management. Our fake run-time environment
     # does local management for simplicity reasons.
-    unless hiera('fakemozilla') {
+    unless $fakemozilla {
       include openldap::client
       realize(Package['python-ldap'])
 
