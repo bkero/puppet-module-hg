@@ -38,8 +38,11 @@ class hg::ssh($ldap_binddn=hiera('secrets_openldap_moco_bindhg_username'),
         minute  => '*/2';
     }
 
-    User['hg'] {
-        groups => undef,
+    # The user is managed by LDAP, which isn't available in local mode.
+    unless $fakemozilla {
+      User['hg'] {
+          groups => undef,
+      }
     }
 
     unless $fakemozilla {
