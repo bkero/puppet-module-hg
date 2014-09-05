@@ -52,6 +52,14 @@ class hg::ssh($ldap_binddn=hiera('secrets_openldap_moco_bindhg_username'),
       }
     }
 
+    # The sshd service comes from the Mozilla base Puppet configuration.
+    # It's not available in local mode, so define it manually.
+    if $fakemozilla {
+      service { 'sshd':
+        ensure => running,
+      }
+    }
+
     file {
 
         # Scripts and configuration files
