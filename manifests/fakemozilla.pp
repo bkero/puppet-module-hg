@@ -35,4 +35,28 @@ class hg::fakemozilla {
     gid => 5500,
   }
 
+  # The scm_ groups are used to control write permissions to repositories.
+  # These groups come from LDAP. We hard-code them here.
+  group { 'scm_level_1':
+    gid => 650,
+  }
+  group { 'scm_level_2':
+    gid => 651,
+  }
+  group { 'scm_level_3':
+    gid => 652,
+  }
+  group { 'scm_l10n':
+    gid => 653,
+  }
+  group { 'scm_l10n_infra':
+    gid => 654,
+  }
+  group { 'scm_sec_sensitive':
+    gid => 655,
+  }
+  group { 'scm_ecmascript':
+    gid => 656,
+  }
+
 }
