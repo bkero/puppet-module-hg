@@ -4,20 +4,10 @@
 /usr/bin/yum -y install puppet git
 git clone https://github.com/bkero/puppet-module-hg.git /etc/puppet/modules/hg
 
-mkdir /repo_local
-mkdir /repo
-ln -sf /repo_local/mozilla /repo/hg
+puppet module install puppetlabs-vcsrepo --version 1.1.0
 
 puppet apply -v -e 'include hg'
 puppet apply -v -e 'include hg::webhead'
-
-
-# Copy HG libraries over
-/usr/bin/hg clone http://hg.mozilla.org/hgcustom/hg_templates /repo_local/mozilla/hg_templates
-/usr/bin/hg clone http://hg.mozilla.org/hgcustom/pushlog /repo_local/mozilla/extensions
-/usr/bin/hg clone http://hg.mozilla.org/hgcustom/library_overrides /repo_local/mozilla/library_overrides
-/usr/bin/hg clone http://hg.mozilla.org/hgcustom/hghooks /repo_local/mozilla/hghooks
-/bin/ln -sf /repo_local/mozilla/hghooks/mozhghooks /repo_local/mozilla/libraries/
 
 cat << EOF > /repo_local/mozilla/webroot_wsgi/hgweb.wsgi
 config = "/repo_local/mozilla/webroot_wsgi/hgweb.config"
