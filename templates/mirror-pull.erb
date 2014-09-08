@@ -115,25 +115,36 @@ fi
 
 cd $REPO_TARGET || die "$REPO_TARGET does not exist, cannot create repositories there"
 
+retry() {
+    local _cmd=$*
+    eval $_cmd
+    res=$?
+    if [ "$res" != 0 ]; then
+        sleep 2
+        echo "retrying $_cmd"
+        eval $_cmd
+        res=$?
+    fi
+    return $res
+}
+
 exit_code=0
 if [ -d "$name" ]; then
     echo "$name already exists, pulling"
     cd $name
     lockfile -r $LOCK_RETRIES ${PWD}/syncing.lck || die "Could not lock destionation"
-    hg pull $GLOBAL_HG_OPTS $CHANGESET
+    retry hg pull $GLOBAL_HG_OPTS $CHANGESET
     TEMPFILE=$(/bin/mktemp)
-    ssh -i <%= @mirror_priv_key_path %> -l <%= @mirror_user_name %> <%= @mirror_source %> pushlog $name > $TEMPFILE
-    /bin/mv $TEMPFILE .hg/pushlog2.db
+    retry "ssh -i <%= @mirror_priv_key_path %> -l <%= @mirror_user_name %> <%= @mirror_source %> pushlog $name > $TEMPFILE" && /bin/mv $TEMPFILE .hg/pushlog2.db
     exit_code=$?
     rm ${PWD}/syncing.lck
 elif [ \! -e $name ]; then
     mkdir -p `dirname $name` 
     echo "$name does not yet exist, cloning"
     lockfile -r $LOCK_RETRIES ${PWD}/syncing.lck || die "Could not lock destination"
-    hg clone $GLOBAL_HG_OPTS -U -v "$src" $name
+    retry hg clone $GLOBAL_HG_OPTS -U -v "$src" $name
     TEMPFILE=$(/bin/mktemp)
-    ssh -i <%= @mirror_priv_key_path %> -l <%= @mirror_user_name %> <%= @mirror_source %> pushlog $name > $TEMPFILE
-    /bin/mv $TEMPFILE .hg/pushlog2.db
+    retry "ssh -i <%= @mirror_priv_key_path %> -l <%= @mirror_user_name %> <%= @mirror_source %> pushlog $name > $TEMPFILE" && /bin/mv $TEMPFILE .hg/pushlog2.db
     exit_code=$?
     rm ${PWD}/syncing.lck
 else
