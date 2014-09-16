@@ -1,0 +1,4 @@
+fakemozilla: true
+secrets_openldap_moco_bindhg_username: 'fakeuser'
+secrets_openldap_moco_bindhg_password: 'fakepass'
+
