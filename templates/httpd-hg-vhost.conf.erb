@@ -14,6 +14,8 @@ WSGISocketPrefix /var/run/wsgi
     SetEnv HGENCODING UTF-8
     SetEnv LC_TYPE UTF-8
 
+    WSGIScriptAlias / /repo_local/mozilla/webroot_wsgi/hgweb.wsgi
+
     WSGIDaemonProcess <%= @vhost %> processes=24 threads=1 maximum-requests=100 deadlock-timeout=60 inactivity-timeout=300 user=hg group=hg display-name=<%= @vhost %>
     WSGIProcessGroup <%= @vhost %>
 
