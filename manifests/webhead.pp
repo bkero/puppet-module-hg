@@ -4,6 +4,7 @@
 #
 # hg_user_uid: UID of the managed hg user (default: 500)
 # hg_user_gid: GID of the managed hg user (default: $hg_user_uid)
+# mercurial_version: which version of mercurial to use (default: present)
 # vhost: default vhost hostname to use (default: hg.mozilla.org)
 # logrotate: Tell logrotate to rotate httpd logs? (default: true)
 # mirror_priv_key_path: path to private mirror key (default: see below)
@@ -22,6 +23,7 @@
 
 class hg::webhead($hg_user_uid='500',
                         $hg_user_gid=$hg_user_uid,
+                        $mercurial_version='present',
                         $vhost='hg.mozilla.org',
                         $logrotate=true,
                         $mirror_priv_key_path='/etc/mercurial/mirror',
@@ -51,22 +53,29 @@ class hg::webhead($hg_user_uid='500',
             service { 'httpd': ensure   => running,
                                 require => Package['httpd'] }
         }
+
+        # mod_wsgi is already included in Mozilla's apache module
     if defined(Package['mod_wsgi']) { realize(Package['mod_wsgi']) }
       else { package { 'mod_wsgi': ensure => installed } }
 
-    if defined(Yumrepo['mozilla']) {
-        package { 'mercurial':
-            ensure  => present,
-            require => Yumrepo['mozilla'];
-        }
+        # This is how we manage mercurial versions
+    if $hg::webhead::mercurial_version == 'present' {
+      package { 'mercurial': ensure => present }
+    }
+    elsif $hg::webhead::mercurial_version =~ /^http/ {
+      package { 'mercurial':
+        ensure   => present,
+        source   => $hg::webhead::mercurial_version,
+        provider => 'rpm' }
     }
     else {
-        package { 'mercurial':
-            ensure   => present,
-            source   => 'http://people.mozilla.org/~bkero/mercurial-2.8+122-1df77035c814.x86_64.rpm',
-            provider => 'rpm';
-        }
+      package { 'mercurial': ensure => $hg::webhead::mercurial_version }
     }
+
+    if defined(Yumrepo['mozilla']) {
+        Yumrepo['mozilla'] -> Package['mercurial']
+        }
+
     if defined(Collectd::Plugin['apache']) {
         realize Collectd::Plugin['apache']
     }
@@ -110,7 +119,7 @@ class hg::webhead($hg_user_uid='500',
 
         # Apache logging
 
-        "/var/log/httpd/$vhost":
+        "/var/log/httpd/${hg::webhead::vhost}":
             ensure  => directory,
             require => Package['httpd'],
             notify  => Service['httpd'];
@@ -138,7 +147,8 @@ class hg::webhead($hg_user_uid='500',
 
         '/etc/mercurial/hgrc':
             ensure  => present,
-            content => template('hg/hgrc-webhead.erb');
+            content => template('hg/hgrc-webhead.erb'),
+            require => Package['mercurial'];
         '/usr/local/bin/mirror-pull':
             ensure  => present,
             mode    => '0755',
