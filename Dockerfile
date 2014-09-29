@@ -5,7 +5,6 @@ MAINTAINER Ben Kero <bkero@bke.ro>
 
 RUN /bin/rpm -ivh http://yum.puppetlabs.com/el/6/products/x86_64/puppetlabs-release-6-11.noarch.rpm
 RUN /bin/rpm -ivh http://mirrors.kernel.org/fedora-epel/6/x86_64/epel-release-6-8.noarch.rpm
-RUN /bin/rpm -ivh http://staff.osuosl.org/~bkero/mercurial-3.1.1-0.x86_64.rpm
 
 RUN /usr/bin/yum install -y git
 RUN /usr/bin/yum install -y puppet
@@ -14,10 +13,8 @@ RUN mkdir /repo_local
 RUN mkdir /repo
 RUN /bin/ln -sf /repo_local/mozilla /repo/hg
 
-#RUN /usr/bin/git clone https://github.com/bkero/puppet-module-hg.git /etc/puppet/modules/hg
 ADD . /etc/puppet/modules/hg
-RUN /usr/bin/puppet apply -v -e 'include hg'
-RUN /usr/bin/puppet apply -v -e 'include hg::webhead'
+RUN /usr/bin/puppet apply -v -e 'class {"hg::webhead": mercurial_version => "http://staff.osuosl.org/~bkero/mercurial-3.1.1-0.x86_64.rpm"}'
 
 RUN /usr/bin/hg clone https://hg.mozilla.org/hgcustom/version-control-tools /version-control-tools
 RUN /usr/bin/hg clone https://hg.mozilla.org/hgcustom/library_overrides/ /repo_local/mozilla/library_overrides
