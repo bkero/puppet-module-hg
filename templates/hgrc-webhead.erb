@@ -10,6 +10,7 @@ method = /usr/sbin/sendmail
 from = hg@<%= @vhost %>
 
 [web]
+logourl = https://developer.mozilla.org/en/docs/Mercurial
 style = <%= @hgweb_style %>
 allow_archive = bz2 gz zip
 templates = <%= @template_path %>/
@@ -25,9 +26,11 @@ git = 1
 unified = 8
 
 [extensions]
-#hgwebjson = <%= @extension_path %>/hgwebjson.py
-#pushlog-feed = <%= @extension_path %>/pushlog-feed.py
-#buglink = <%= @extension_path %>/buglink.py
+hgwebjson = <%= @extension_path %>/hgwebjson.py
+pushlog-feed = <%= @extension_path %>/pushlog-feed.py
+pushlog = <%= @extension_path %>/pushlog
+buglink = <%= @extension_path %>/buglink.py
+serverlog = <%= @extension_path %>/serverlog
 #highlight =
 #interhg =
 
