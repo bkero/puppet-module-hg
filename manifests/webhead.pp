@@ -49,6 +49,7 @@ class hg::webhead($hg_user_uid='500',
         else {
             package { 'httpd': ensure   => installed; }
             service { 'httpd': ensure   => running,
+                               enabled  => true,
                                 require => Package['httpd'] }
         }
     if defined(Package['mod_wsgi']) { realize(Package['mod_wsgi']) }
