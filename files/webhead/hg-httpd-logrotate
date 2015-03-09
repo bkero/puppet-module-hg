@@ -1,4 +1,4 @@
-/var/log/httpd/* {
+/var/log/httpd/*/*log {
     daily
     rotate 720
     compress
