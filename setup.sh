@@ -2,21 +2,21 @@
 
 /usr/bin/yum install -y http://yum.puppetlabs.com/el/6/products/x86_64/puppetlabs-release-6-11.noarch.rpm
 /usr/bin/yum -y install puppet git
-git clone https://github.com/bkero/puppet-module-hg.git /etc/puppet/modules/hg
+/usr/bin/git clone https://github.com/bkero/puppet-module-hg.git /etc/puppet/modules/hg
 
-mkdir /repo_local
-mkdir /repo
-ln -sf /repo_local/mozilla /repo/hg
+/bin/mkdir /repo_local
+/bin/mkdir /repo
+/bin/ln -sf /repo_local/mozilla /repo/hg
 
-#puppet apply -v -e 'include hg'
-puppet apply -v -e 'include hg::webhead'
+/usr/bin/puppet apply -v -e 'include hg::webhead'
 
 
 # Copy HG libraries over
 /usr/bin/hg clone http://hg.mozilla.org/hgcustom/version-control-tools /vct
 #/usr/bin/hg clone http://hg.mozilla.org/hgcustom/library_overrides /repo_local/mozilla/library_overrides
 
-cp -rv /vct/hgtemplates /repo_local/mozilla/hg_templates
+mkdir /repo_local/mozilla/hg_templates
+cp -rv /vct/hgtemplates/* /repo_local/mozilla/hg_templates
 cp -rv /vct/hghooks /repo_local/mozilla/hghooks
 /bin/ln -sf /repo_local/mozilla/hghooks/mozhghooks /repo_local/mozilla/libraries/
 
