@@ -144,7 +144,8 @@ class hg::webhead($hg_user_uid='500',
 
         '/etc/mercurial/hgrc':
             ensure  => present,
-            content => template('hg/hgrc-webhead.erb');
+            content => template('hg/hgrc-webhead.erb'),
+            require => Package['mercurial'];
         '/usr/local/bin/mirror-pull':
             ensure  => present,
             mode    => '0755',
