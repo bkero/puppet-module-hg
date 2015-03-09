@@ -18,6 +18,7 @@
 mkdir /repo_local/mozilla/hg_templates
 cp -rv /vct/hgtemplates/* /repo_local/mozilla/hg_templates
 cp -rv /vct/hghooks /repo_local/mozilla/hghooks
+cp -rv /vct/hgext/pushlog-legacy/*.py /repo_local/mozilla/extensions
 /bin/ln -sf /repo_local/mozilla/hghooks/mozhghooks /repo_local/mozilla/libraries/
 
 cat << EOF > /repo_local/mozilla/webroot_wsgi/hgweb.wsgi
