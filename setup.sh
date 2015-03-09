@@ -13,7 +13,7 @@
 
 # Copy HG libraries over
 /usr/bin/hg clone http://hg.mozilla.org/hgcustom/version-control-tools /vct
-#/usr/bin/hg clone http://hg.mozilla.org/hgcustom/library_overrides /repo_local/mozilla/library_overrides
+/usr/bin/hg clone http://hg.mozilla.org/hgcustom/library_overrides /repo_local/mozilla/library_overrides
 
 mkdir /repo_local/mozilla/hg_templates
 cp -rv /vct/hgtemplates/* /repo_local/mozilla/hg_templates
