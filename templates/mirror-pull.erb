@@ -35,7 +35,7 @@ if [ -n "$SSH_ORIGINAL_COMMAND" ]; then
     set -- $SSH_ORIGINAL_COMMAND
 fi
 
-TEMP=`getopt --options hdr:t:l:c:e: --long help,delete,root:,target:lock-retries:changeset:repo: \
+TEMP=`getopt --options hdr:t:l:c:e: --long help,delete,hgrc,root:,target:lock-retries:changeset:repo: \
     -n 'mirror-pull' -- "$@"`
 if [ $? != 0 ]; then
     die "getopt barfed"
@@ -48,6 +48,7 @@ REPO_ROOT=ssh://<%= @mirror_source %>
 REPO_TARGET=<%= @repo_serve_path %>
 LOCK_RETRIES=3 # 3 retries, the first is 5, second is 10, third is 15
 DELETE=false
+HGRC=false
 CHANGESET=""
 
 export PYTHONPATH=<%= @python_lib_override_path %>:<%= @python_lib_path %>
@@ -71,6 +72,9 @@ while true; do
             ;;
         -d|--delete)
             DELETE=true ; shift 1
+            ;;
+        --hgrc)
+            HGRC=true ; shift 1
             ;;
         -h|--help)
             usage
@@ -120,7 +124,7 @@ retry() {
     eval $_cmd
     res=$?
     if [ "$res" != 0 ]; then
-        sleep 2
+        sleep 1
         echo "retrying $_cmd"
         eval $_cmd
         res=$?
@@ -128,23 +132,27 @@ retry() {
     return $res
 }
 
+if [ "$HGRC" = "true" ]; then
+    if [ ! -d $repo/.hg ]; then
+        echo "No repo found at $repo"
+        exit 1
+    fi
+    echo "Updating hgrc for $repo"
+    TEMPFILE=$(/bin/mktemp)
+    retry "ssh -i <%= @mirror_priv_key_path %> -l <%= @mirror_user_name %> <%= @mirror_source %> repo-config $name > $TEMPFILE" && /bin/mv $TEMPFILE $repo/.hg/hgrc
+    exit 0
+fi
+
 exit_code=0
 if [ -d "$name" ]; then
     echo "$name already exists, pulling"
-    cd $name
-    lockfile -r $LOCK_RETRIES ${PWD}/syncing.lck || die "Could not lock destionation"
-    retry hg pull $GLOBAL_HG_OPTS $CHANGESET
-    TEMPFILE=$(/bin/mktemp)
-    retry "ssh -i <%= @mirror_priv_key_path %> -l <%= @mirror_user_name %> <%= @mirror_source %> pushlog $name > $TEMPFILE" && /bin/mv $TEMPFILE .hg/pushlog2.db
+    retry hg -R $name pull $GLOBAL_HG_OPTS $CHANGESET
     exit_code=$?
-    rm ${PWD}/syncing.lck
 elif [ \! -e $name ]; then
     mkdir -p `dirname $name` 
     echo "$name does not yet exist, cloning"
     lockfile -r $LOCK_RETRIES ${PWD}/syncing.lck || die "Could not lock destination"
     retry hg clone $GLOBAL_HG_OPTS -U -v "$src" $name
-    TEMPFILE=$(/bin/mktemp)
-    retry "ssh -i <%= @mirror_priv_key_path %> -l <%= @mirror_user_name %> <%= @mirror_source %> pushlog $name > $TEMPFILE" && /bin/mv $TEMPFILE .hg/pushlog2.db
     exit_code=$?
     rm ${PWD}/syncing.lck
 else
