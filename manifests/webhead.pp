@@ -64,7 +64,7 @@ class hg::webhead($hg_user_uid='500',
         package { 'mercurial':
             ensure   => present,
             source   =>
-            'http://people.mozilla.org/~bkero/mercurial-3.3.2.x86_64.rpm',
+            'http://people.mozilla.org/~bkero/mercurial-3.3.2-0.x86_64.rpm',
             provider => 'rpm';
         }
     }
