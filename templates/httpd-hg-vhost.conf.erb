@@ -16,7 +16,7 @@ WSGISocketPrefix /var/run/wsgi
 
     WSGIScriptAlias / /repo_local/mozilla/webroot_wsgi/hgweb.wsgi
 
-    WSGIDaemonProcess <%= @vhost %> processes=24 threads=1 maximum-requests=100 deadlock-timeout=60 inactivity-timeout=300 user=hg group=hg display-name=<%= @vhost %>
+    WSGIDaemonProcess <%= @vhost %> processes=48 threads=1 maximum-requests=20 deadlock-timeout=60 inactivity-timeout=300 user=hg group=hg display-name=<%= @vhost %>
     WSGIProcessGroup <%= @vhost %>
 
     AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/json
